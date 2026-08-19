@@ -6,6 +6,7 @@
   "scripts": {
     "check": "node tools/check-contrast.mjs",
     "preview": "node tools/build-preview.mjs",
-    "verify": "node tools/build-preview.mjs && node tools/check-contrast.mjs"
+    "verify": "node tools/build-preview.mjs && node tools/check-contrast.mjs",
+    "verify:gates": "bash tools/verify-gates.sh"
   }
 }

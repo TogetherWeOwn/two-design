@@ -1,0 +1,123 @@
+# The merge gate for the design system.
+#
+# Two gates, both blocking, both from the Designer (TWO-19), both plain Node with
+# zero dependencies — so the whole thing is well under a minute and nobody is ever
+# tempted to route around it.
+#
+# The job id is `tests` on purpose. Branch protection matches a required check
+# against the *job id*, not the workflow name, and `tests` is the name the org's
+# setup script requires across our repos (TWO-39). One id, every repo, no surprises.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+jobs:
+  tests:
+    name: tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+
+    steps:
+      # fetch-depth is irrelevant here but the checkout must be a real working tree,
+      # because the second gate is a `git diff` against it.
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # There are no dependencies, and that is a feature worth defending. If a
+      # package.json ever grows one, this step starts failing and someone has to
+      # decide deliberately rather than by drift.
+      - name: No dependencies
+        run: |
+          if node -e "const p=require('./package.json'); process.exit((p.dependencies||p.devDependencies) ? 1 : 0)"; then
+            echo "zero dependencies, as designed"
+          else
+            echo "::error::two-design has grown a dependency. That was a deliberate zero — see README before removing this check."
+            exit 1
+          fi
+
+      # ---------------------------------------------------------------------
+      # Gate 1 — WCAG 2.2 AA contrast.
+      #
+      # The script parses the hex values straight out of tokens/two.css; it keeps
+      # no copy of its own, so it cannot go stale. It exits non-zero on any
+      # failing pairing. Verified by QA against a deliberately darkened
+      # --ink-muted: 39/43, exit 1, naming all four broken pairings.
+      # ---------------------------------------------------------------------
+      #
+      # `set -o pipefail` is load-bearing. GitHub's default shell is `bash -e`, not
+      # `bash -eo pipefail`, so `node ... | tee` reports tee's exit status and a
+      # failing contrast check would print FAIL in the log and pass the step. A gate
+      # that cannot go red is not a gate.
+      - name: Contrast — WCAG 2.2 AA
+        run: |
+          set -o pipefail
+          node tools/check-contrast.mjs | tee contrast.txt
+
+      # A non-zero exit is not the only way this gate can be defeated. Deleting a
+      # pairing from the assertion list makes a failure disappear and prints a
+      # smaller, still-green total. So the count is a floor, not just a pass/fail.
+      #
+      # Raising MINIMUM_PAIRINGS when the system genuinely grows is expected and
+      # welcome. Lowering it is a design decision that needs saying out loud in the
+      # PR, not a silent edit that makes the gate weaker while it still says PASS.
+      - name: Contrast coverage has not shrunk
+        env:
+          MINIMUM_PAIRINGS: '43'
+        run: |
+          asserted=$(grep -oE '[0-9]+/[0-9]+ pairings pass' contrast.txt | cut -d/ -f2 | cut -d' ' -f1)
+          if [ -z "$asserted" ]; then
+            echo "::error::could not read the pairing count out of check-contrast.mjs output — the gate cannot prove anything"
+            exit 1
+          fi
+          echo "asserted $asserted pairings, floor is $MINIMUM_PAIRINGS"
+          if [ "$asserted" -lt "$MINIMUM_PAIRINGS" ]; then
+            echo "::error::contrast coverage dropped from $MINIMUM_PAIRINGS to $asserted pairings. A pairing was deleted, not fixed. Removing a colour combination the system no longer uses is fine — say so in the PR and lower the floor in the same commit."
+            exit 1
+          fi
+
+      # ---------------------------------------------------------------------
+      # Gate 2 — the preview cannot drift from the tokens.
+      #
+      # preview/tokens.generated.css is generated. Edit a token, forget to
+      # regenerate, and the preview quietly shows the old system to whoever is
+      # reviewing the new one. Verified by QA: a one-line token change with no
+      # regeneration fails here.
+      # ---------------------------------------------------------------------
+      - name: Preview is in sync with the tokens
+        run: |
+          node tools/build-preview.mjs
+          if ! git diff --exit-code -- preview/; then
+            echo "::error::preview/ is out of date. A token changed and the preview was not regenerated. Run \`npm run preview\` and commit the result."
+            exit 1
+          fi
+
+      # The tree must be clean overall, not just under preview/. A generator that
+      # writes anywhere else is a generator whose output nobody is reviewing.
+      - name: Nothing else was generated
+        run: |
+          if ! git diff --exit-code; then
+            echo "::error::the build wrote files outside preview/. Commit them or stop generating them."
+            exit 1
+          fi
+
+      - name: Upload the contrast report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: contrast-report
+          path: contrast.txt
+          retention-days: 14
+          if-no-files-found: ignore
