@@ -1,3 +1,6 @@
+node_modules/
+.DS_Store
+
 # Written by the contrast gate so CI can upload it as an artifact. Not a source
 # file — the tokens are.
 contrast.txt

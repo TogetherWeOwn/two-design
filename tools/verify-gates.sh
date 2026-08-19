@@ -31,6 +31,16 @@ fail() { printf '\033[31mFAIL\033[0m  %s\n' "$1"; ok=1; }
 # a check that runs, prints a failure, and exits zero.
 gates() (
   set -o pipefail          # without this a failing node piped into tee reports tee
+
+  # Mirrors the "No dependencies" step in ci.yml. It lives here too because a
+  # gate that only exists in the workflow is a gate nobody has watched fail.
+  if node -e "const p=require('./package.json'); process.exit((p.dependencies||p.devDependencies) ? 1 : 0)"; then
+    :
+  else
+    echo "two-design has grown a dependency — that was a deliberate zero"
+    return 1
+  fi
+
   node tools/check-contrast.mjs | tee contrast.txt || return 1
 
   local asserted
@@ -88,6 +98,18 @@ expect_red "a pairing deleted rather than fixed" "$d"
 # 3. A token edited without regenerating the preview.
 d=$(copy drift); sed -i '0,/#0b0714/s//#0b0715/' "$d/tokens/two.css"
 expect_red "preview left stale after a token change" "$d"
+
+# 4. A dependency added. The zero here is deliberate — it is why these gates run
+#    in ~30s with no install step, and why nobody is tempted to route around them.
+d=$(copy dependency)
+node -e '
+  const f = process.argv[1] + "/package.json";
+  const fs = require("fs");
+  const p = JSON.parse(fs.readFileSync(f, "utf8"));
+  p.dependencies = { "left-pad": "^1.3.0" };
+  fs.writeFileSync(f, JSON.stringify(p, null, 2) + "\n");
+' "$d"
+expect_red "a dependency added to a deliberately zero-dependency repo" "$d"
 
 echo
 if [ "$ok" -ne 0 ]; then

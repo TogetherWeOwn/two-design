@@ -44,9 +44,15 @@
                     purpose; it is not carrying meaning.
      - line-strong: the boundary of an interactive control (input, checkbox,
                     secondary button). WCAG 2.2 1.4.11 applies here: 3:1
-                    against every ground. Do not swap these two. */
+                    against every ground. Do not swap these two.
+
+     line-strong is carrying a hard accessibility floor, so it is specified
+     with room to spare: 3.29:1 on raised, the tightest of the three grounds.
+     It used to sit at 3.01:1, which passed and meant nothing — one nudge to
+     any ground colour would have taken a control border below AA. If you
+     darken it, the contrast gate is the thing that will tell you. */
   --color-line: #2a2142;
-  --color-line-strong: #69607e;
+  --color-line-strong: #6f6685;
 
   /* Text. Two, and that is the whole set.
      Anything quieter than ink-muted is a size or weight change, not a colour
