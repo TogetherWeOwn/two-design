@@ -1,0 +1,30 @@
+# Who gets asked to review what.
+#
+# Same rules as two-bot and two-web: handles are GitHub *teams* in the
+# two-gaming org, never individuals, so a review request never dies because one
+# account is asleep. Teams are created by scripts/setup-github.sh in two-bot;
+# see docs/GITHUB.md there for the list and who is in each.
+#
+# A rule naming a team that does not exist, or a team without write access to
+# this repo, is silently dropped by GitHub. Nothing warns you. `setup-github.sh
+# --verify` reads this file and fails on either case.
+
+# Default: the design system belongs to the Designer.
+*                           @two-gaming/design
+
+# Tokens are the contract. `resources/css/two.css` in two-web is a copy of
+# tokens/two.css, so a change here lands in the live site's colours, spacing and
+# type scale. Frontend sees it before it does.
+/tokens/                    @two-gaming/design @two-gaming/frontend
+
+# The gates that make the accessibility claim mean something. QA wrote them and
+# QA reviews changes to them - "make CI green" is the easiest thing in the repo
+# to get wrong on purpose.
+/.github/workflows/         @two-gaming/design @two-gaming/qa
+/tools/                     @two-gaming/design @two-gaming/qa
+
+# Source-control posture. Changing who reviews what, or removing a hook, is not
+# a design decision.
+/.github/CODEOWNERS         @two-gaming/founding-engineer
+/.githooks/                 @two-gaming/founding-engineer
+/.gitleaks.toml             @two-gaming/founding-engineer

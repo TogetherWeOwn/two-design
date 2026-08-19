@@ -1,0 +1,24 @@
+# Secret scanning config for two-design.
+#
+# There are no credentials in this repo today and there is no obvious reason
+# there ever should be. That is exactly why the scan runs: "no secrets in here"
+# is a statement about today, and fonts, brand assets and tokens will outlive
+# it. The check costs seconds and the alternative is finding out later.
+#
+# Extends the default gitleaks ruleset rather than replacing it, so we keep
+# every provider pattern they maintain.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Binary brand assets - scanned as text, high entropy by nature"
+paths = [
+  # Compressed webfonts and PNGs read as random bytes to a regex scanner, which
+  # produces false positives and nothing else. Allowlisting them means a secret
+  # deliberately hidden inside a font file would not be caught here - accepted,
+  # because the pre-commit hook and review are what cover deliberate acts, and a
+  # gate that cries wolf on every font update gets switched off.
+  '''^assets/fonts/.*\.woff2$''',
+  '''^assets/brand/.*\.(png|jpg|jpeg|webp|ico)$''',
+]
