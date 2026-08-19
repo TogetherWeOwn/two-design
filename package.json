@@ -1,0 +1,11 @@
+{
+  "name": "two-design",
+  "private": true,
+  "type": "module",
+  "description": "Design tokens and brand direction for the TWO website. Zero dependencies on purpose.",
+  "scripts": {
+    "check": "node tools/check-contrast.mjs",
+    "preview": "node tools/build-preview.mjs",
+    "verify": "node tools/build-preview.mjs && node tools/check-contrast.mjs"
+  }
+}

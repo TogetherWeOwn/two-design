@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TWO — design system</title>
+<link rel="stylesheet" href="tokens.generated.css">
+<link rel="stylesheet" href="preview.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="row" style="margin-bottom:1.5rem">
+      <img src="../assets/brand/two-icon-256.png" alt="" width="40" height="40"
+           style="border-radius:var(--radius-md)">
+      <span class="u-display" style="font-size:var(--text-sm)">Together We Own</span>
+    </div>
+    <h1 class="u-display">Design&nbsp;system</h1>
+    <p class="lede">Every token and every component state in this system, rendered from
+      <code>tokens/two.css</code>. No build step — open the file. This page is what built
+      screens get reviewed against.</p>
+    <p class="note">Colour values here are generated from the real token file by
+      <code>tools/build-preview.mjs</code>, so this page cannot drift from what ships.</p>
+  </header>
+
+  <!-- ================================================================= -->
+  <h2 class="u-display">Colour</h2>
+  <p class="note">One palette, dark only. Sampled from TWO's own splash art — the brand runs
+    violet to crimson with the green channel at zero, so even the greys are violet-cast.
+    All 43 pairings this system uses are asserted in <code>tools/check-contrast.mjs</code>.</p>
+
+  <h3>Grounds</h3>
+  <ul class="swatches">
+    <li class="swatch"><div class="chip" style="background:var(--color-canvas)"></div>
+      <div class="meta"><code>canvas</code><span class="hex">#0b0714</span>
+      <span class="use">The page.</span></div></li>
+    <li class="swatch"><div class="chip" style="background:var(--color-surface)"></div>
+      <div class="meta"><code>surface</code><span class="hex">#130e20</span>
+      <span class="use">Cards, panels, rows.</span></div></li>
+    <li class="swatch"><div class="chip" style="background:var(--color-raised)"></div>
+      <div class="meta"><code>raised</code><span class="hex">#1b1430</span>
+      <span class="use">Hover, menus, skeletons.</span></div></li>
+    <li class="swatch"><div class="chip" style="background:var(--color-violet)"></div>
+      <div class="meta"><code>violet</code><span class="hex">#160750</span>
+      <span class="use">One flat band per page. Never a gradient.</span></div></li>
+  </ul>
+
+  <h3>Lines — two, doing different jobs</h3>
+  <ul class="swatches">
+    <li class="swatch"><div class="chip" style="background:var(--color-line)"></div>
+      <div class="meta"><code>line</code><span class="hex">#2a2142</span>
+      <span class="use">Decorative separation only. Under 3:1 on purpose.</span></div></li>
+    <li class="swatch"><div class="chip" style="background:var(--color-line-strong)"></div>
+      <div class="meta"><code>line-strong</code><span class="hex">#69607e</span>
+      <span class="use">Interactive control boundaries. Clears 3:1 on every ground.</span></div></li>
+  </ul>
+  <p class="dont">Using <code>line</code> on an input border is the most likely accessibility
+    bug in this build. Controls get <code>line-strong</code>.</p>
+
+  <h3>Text — two, and that is the whole set</h3>
+  <ul class="swatches">
+    <li class="swatch"><div class="chip" style="background:var(--color-ink)"></div>
+      <div class="meta"><code>ink</code><span class="hex">#edeaf4</span>
+      <span class="use">Everything you read. 14.9:1 worst case.</span></div></li>
+    <li class="swatch"><div class="chip" style="background:var(--color-ink-muted)"></div>
+      <div class="meta"><code>ink-muted</code><span class="hex">#9e96b5</span>
+      <span class="use">Secondary. 6.3:1 worst case.</span></div></li>
+    <li class="swatch"><div class="chip" style="background:var(--color-ink-disabled)"></div>
+      <div class="meta"><code>ink-disabled</code><span class="hex">#686277</span>
+      <span class="use">3:1. Contrast-exempt; we hold it anyway.</span></div></li>
+  </ul>
+  <p class="note">There is no third grey. Anything quieter than <code>ink-muted</code> is a size
+    or weight change, not a colour change — a third grey would fail AA on canvas.</p>
+
+  <h3>Brand — the join action, and almost nothing else</h3>
+  <ul class="swatches">
+    <li class="swatch"><div class="chip" style="background:var(--color-brand)">
+      <span style="color:var(--color-on-brand);font-size:var(--text-xs)">5.85:1</span></div>
+      <div class="meta"><code>brand</code><span class="hex">#c80154</span>
+      <span class="use">Once per screen.</span></div></li>
+    <li class="swatch"><div class="chip" style="background:var(--color-brand-hover)">
+      <span style="color:var(--color-on-brand);font-size:var(--text-xs)">4.75:1</span></div>
+      <div class="meta"><code>brand-hover</code><span class="hex">#e01260</span></div></li>
+    <li class="swatch"><div class="chip" style="background:var(--color-brand-active)">
+      <span style="color:var(--color-on-brand);font-size:var(--text-xs)">7.81:1</span></div>
+      <div class="meta"><code>brand-active</code><span class="hex">#a50145</span></div></li>
+    <li class="swatch"><div class="chip" style="background:var(--color-brand-quiet)">
+      <span style="color:var(--color-brand-ink);font-size:var(--text-xs)">7.43:1</span></div>
+      <div class="meta"><code>brand-quiet</code><span class="hex">#2b0a1c</span>
+      <span class="use">Tinted badge ground.</span></div></li>
+    <li class="swatch"><div class="chip" style="background:var(--color-brand-ink)"></div>
+      <div class="meta"><code>brand-ink</code><span class="hex">#ff7ba6</span>
+      <span class="use">Crimson as a link. Always underlined.</span></div></li>
+  </ul>
+
+  <h3>Presence, alert, focus</h3>
+  <ul class="swatches">
+    <li class="swatch"><div class="chip" style="background:var(--color-online)"></div>
+      <div class="meta"><code>online</code><span class="hex">#3bd07a</span>
+      <span class="use">A person is online. Matches Discord's convention.</span></div></li>
+    <li class="swatch"><div class="chip" style="background:var(--color-alert)"></div>
+      <div class="meta"><code>alert</code><span class="hex">#c47527</span>
+      <span class="use">Errors and warnings. Burnt orange, not red — red beside a crimson
+        button is indistinguishable at 14px.</span></div></li>
+    <li class="swatch"><div class="chip" style="background:var(--color-focus)"></div>
+      <div class="meta"><code>focus</code><span class="hex">#f3eeff</span>
+      <span class="use">Clears 3:1 on every ground and on a crimson fill.</span></div></li>
+  </ul>
+
+  <!-- ================================================================= -->
+  <h2 class="u-display">Type</h2>
+  <p class="note">One family: Archivo, variable, self-hosted, OFL. It carries a width axis as
+    well as a weight axis, which is why it is here — <code>u-display</code> gives us expanded
+    signage lettering that echoes the logo lockup with no second font file.</p>
+
+  <div class="type-row"><span class="k">u-display 6xl</span>
+    <span class="v u-display" style="font-size:var(--text-6xl);line-height:var(--text-6xl--line-height);letter-spacing:var(--text-6xl--letter-spacing)">Since 1998</span></div>
+  <div class="type-row"><span class="k">u-display 4xl</span>
+    <span class="v u-display" style="font-size:var(--text-4xl);line-height:var(--text-4xl--line-height);letter-spacing:var(--text-4xl--letter-spacing)">You start as a Prospect</span></div>
+  <div class="type-row"><span class="k">3xl / h2</span>
+    <span class="v" style="font-size:var(--text-3xl);line-height:var(--text-3xl--line-height);letter-spacing:var(--text-3xl--letter-spacing);font-weight:600">Squads, not raids</span></div>
+  <div class="type-row"><span class="k">2xl / h3</span>
+    <span class="v" style="font-size:var(--text-2xl);line-height:var(--text-2xl--line-height);font-weight:600">Thursday game night</span></div>
+  <div class="type-row"><span class="k">xl / h4</span>
+    <span class="v" style="font-size:var(--text-xl);line-height:var(--text-xl--line-height);font-weight:600">Upcoming</span></div>
+  <div class="type-row"><span class="k">lg / lead</span>
+    <span class="v" style="font-size:var(--text-lg);line-height:var(--text-lg--line-height)">A gaming clan that spent most of its life private.</span></div>
+  <div class="type-row"><span class="k">base / body</span>
+    <span class="v">18+, mostly North America, mostly evenings. Small enough that people know your name by the second time you show up.</span></div>
+  <div class="type-row"><span class="k">sm / secondary</span>
+    <span class="v" style="font-size:var(--text-sm);line-height:var(--text-sm--line-height);color:var(--color-ink-muted)">Game nights get posted in Discord first.</span></div>
+  <div class="type-row"><span class="k">xs / meta</span>
+    <span class="v" style="font-size:var(--text-xs);line-height:var(--text-xs--line-height);color:var(--color-ink-muted)">as of 14:20</span></div>
+  <p class="note" style="margin-top:1rem">Never <code>u-display</code> below 24px — expanded
+    faces stop being legible. Never <code>text-sm</code> for paragraphs: small light-on-dark
+    text loses legibility much faster than dark-on-light.</p>
+
+  <!-- ================================================================= -->
+  <h2 class="u-display">Radius &amp; spacing</h2>
+  <p class="note">Nothing is rounder than 8px except a person's avatar, which is a circle.
+    Soft 12–16px corners and pill buttons are the signature of every SaaS template; our mark
+    is a chamfered shield, so the interface is hard-edged too.</p>
+  <div class="radius-demo">
+    <div style="border-radius:var(--radius-sm)">sm · 2px</div>
+    <div style="border-radius:var(--radius-md)">md · 4px</div>
+    <div style="border-radius:var(--radius-lg)">lg · 8px</div>
+    <div style="border-radius:var(--radius-full)">avatar only</div>
+  </div>
+
+  <h3>Spacing — Tailwind's 4px scale, unchanged</h3>
+  <div class="space-demo">
+    <figure><span style="height:4px"></span><figcaption>1</figcaption></figure>
+    <figure><span style="height:8px"></span><figcaption>2</figcaption></figure>
+    <figure><span style="height:12px"></span><figcaption>3</figcaption></figure>
+    <figure><span style="height:16px"></span><figcaption>4</figcaption></figure>
+    <figure><span style="height:24px"></span><figcaption>6</figcaption></figure>
+    <figure><span style="height:32px"></span><figcaption>8</figcaption></figure>
+    <figure><span style="height:48px"></span><figcaption>12</figcaption></figure>
+    <figure><span style="height:64px"></span><figcaption>16</figcaption></figure>
+    <figure><span style="height:96px"></span><figcaption>24</figcaption></figure>
+  </div>
+
+  <!-- ================================================================= -->
+  <h2 class="u-display">Buttons — every state</h2>
+
+  <h3>Primary · one per screen</h3>
+  <div class="grid">
+    <div class="cell"><span class="label">Default</span>
+      <button class="btn btn-primary">Join the Discord</button></div>
+    <div class="cell"><span class="label">Hover</span>
+      <button class="btn btn-primary is-hover">Join the Discord</button></div>
+    <div class="cell"><span class="label">Focus</span>
+      <button class="btn btn-primary is-focus">Join the Discord</button></div>
+    <div class="cell"><span class="label">Active</span>
+      <button class="btn btn-primary is-active">Join the Discord</button></div>
+    <div class="cell"><span class="label">Disabled</span>
+      <button class="btn btn-primary" disabled>Join the Discord</button>
+      <p class="help">Loses the crimson entirely — a greyed crimson button still reads as the
+        primary action and people keep clicking it.</p></div>
+    <div class="cell"><span class="label">Loading</span>
+      <button class="btn btn-primary" disabled aria-busy="true"
+              style="background:var(--color-brand);color:var(--color-on-brand);border-color:transparent">
+        <span class="spinner"></span> Saving…</button>
+      <p class="help">Same box. A spinner that changes the button width is a CLS failure.</p></div>
+  </div>
+
+  <h3>Secondary &amp; quiet</h3>
+  <div class="grid">
+    <div class="cell"><span class="label">Secondary — default</span>
+      <button class="btn btn-secondary">Can't make it</button></div>
+    <div class="cell"><span class="label">Secondary — hover</span>
+      <button class="btn btn-secondary is-hover">Can't make it</button></div>
+    <div class="cell"><span class="label">Secondary — focus</span>
+      <button class="btn btn-secondary is-focus">Can't make it</button></div>
+    <div class="cell"><span class="label">Secondary — disabled</span>
+      <button class="btn btn-secondary" disabled>Can't make it</button></div>
+    <div class="cell"><span class="label">Quiet — default</span>
+      <button class="btn btn-quiet">See past events</button></div>
+    <div class="cell"><span class="label">Quiet — hover</span>
+      <button class="btn btn-quiet is-hover">See past events</button></div>
+  </div>
+
+  <!-- ================================================================= -->
+  <h2 class="u-display">Inputs — every state</h2>
+  <div class="grid">
+    <div class="cell"><span class="label">Default</span>
+      <label class="field"><span class="lbl">Display name</span>
+        <input class="input" placeholder="How you want to show up"></label>
+      <p class="help">Visible on your profile.</p></div>
+    <div class="cell"><span class="label">Hover</span>
+      <label class="field"><span class="lbl">Display name</span>
+        <input class="input is-hover" value="Owen"></label></div>
+    <div class="cell"><span class="label">Focus</span>
+      <label class="field"><span class="lbl">Display name</span>
+        <input class="input is-focus" value="Owen"></label>
+      <p class="help">The border does not also change. Two focus signals is noise.</p></div>
+    <div class="cell"><span class="label">Disabled</span>
+      <label class="field"><span class="lbl">Discord ID</span>
+        <input class="input" value="Managed by Discord" disabled></label></div>
+    <div class="cell"><span class="label">Error</span>
+      <label class="field"><span class="lbl">Event date</span>
+        <input class="input is-error" value="2024-01-01" aria-invalid="true"
+               aria-describedby="d-err"></label>
+      <p class="err" id="d-err"><span aria-hidden="true">▲</span>
+        <span>Pick a date that hasn't happened yet.</span></p>
+      <p class="help">Icon <em>and</em> words. Colour never carries it alone.</p></div>
+    <div class="cell"><span class="label">Checkbox / radio</span>
+      <div class="stack">
+        <label class="row" style="min-height:44px;gap:.625rem">
+          <input type="checkbox" checked style="width:20px;height:20px;accent-color:var(--color-brand)">
+          <span>Remind me in Discord</span></label>
+        <label class="row" style="min-height:44px;gap:.625rem">
+          <input type="checkbox" style="width:20px;height:20px;accent-color:var(--color-brand)">
+          <span>Show my rank publicly</span></label>
+      </div></div>
+  </div>
+
+  <!-- ================================================================= -->
+  <h2 class="u-display">Badges, avatars, counters</h2>
+  <div class="grid">
+    <div class="cell"><span class="label">Badges</span>
+      <div class="row">
+        <span class="badge badge-neutral">PC</span>
+        <span class="badge badge-neutral">Shooters</span>
+        <span class="badge badge-brand">Prospect</span>
+        <span class="badge badge-online"><span class="dot"></span>Online</span>
+        <span class="badge badge-alert"><span aria-hidden="true">▲</span>Full</span>
+      </div>
+      <p class="help"><code>rounded-sm</code>, not pills. Pill badges are the template tell.</p></div>
+
+    <div class="cell"><span class="label">Avatar — image, initials, presence</span>
+      <div class="row">
+        <span class="avatar">OW<span class="presence" title="Online"></span></span>
+        <span class="avatar">JD</span>
+        <span class="avatar" style="width:64px;height:64px;font-size:var(--text-lg)">TW</span>
+      </div>
+      <p class="help">No avatar means initials — never a generic person silhouette.</p></div>
+
+    <div class="cell"><span class="label">Live counter — default</span>
+      <p class="u-numeric u-display" style="font-size:var(--text-6xl);line-height:1;margin:0">84</p>
+      <p class="help" style="margin-top:.5rem">members ·
+        <span style="color:var(--color-online)">26 online</span></p></div>
+
+    <div class="cell"><span class="label">Live counter — stale</span>
+      <p class="u-numeric u-display" style="font-size:var(--text-6xl);line-height:1;margin:0">84</p>
+      <p class="help" style="margin-top:.5rem">members ·
+        <span style="color:var(--color-online)">26 online</span></p>
+      <p style="font-size:var(--text-xs);color:var(--color-ink-muted);margin:.25rem 0 0">as of 14:20</p></div>
+
+    <div class="cell"><span class="label">Live counter — degraded</span>
+      <p style="margin:0 0 1rem;font-size:var(--text-lg)">A gaming clan that spent most of its
+        life private.</p>
+      <button class="btn btn-primary">Join the Discord</button>
+      <p class="help">The number is <em>omitted</em>, never zeroed. A <code>0</code> here is the
+        single most damaging thing this page can display.</p></div>
+  </div>
+
+  <!-- ================================================================= -->
+  <h2 class="u-display">Cards &amp; loading</h2>
+  <div class="grid">
+    <div class="cell" style="background:var(--color-canvas)"><span class="label">Card — default</span>
+      <article class="card">
+        <p class="badge badge-neutral" style="margin:0 0 .625rem">Thu 21 Aug · 20:00 ET</p>
+        <h4 style="margin:0;font-size:var(--text-lg);font-weight:600">Thursday game night</h4>
+        <p class="help">Squads in The Lounge. Turn up whenever.</p>
+        <div style="margin-top:1rem"><button class="btn btn-primary">I'm in</button></div>
+      </article></div>
+
+    <div class="cell" style="background:var(--color-canvas)"><span class="label">Card — hover (link cards only)</span>
+      <article class="card is-hover">
+        <p class="badge badge-neutral" style="margin:0 0 .625rem">Thu 21 Aug · 20:00 ET</p>
+        <h4 style="margin:0;font-size:var(--text-lg);font-weight:600">Thursday game night</h4>
+        <p class="help">A card that highlights but cannot be clicked is a lie.</p>
+      </article></div>
+
+    <div class="cell" style="background:var(--color-canvas)"><span class="label">Card — loading skeleton</span>
+      <article class="card" aria-busy="true">
+        <div class="skel" style="height:20px;width:40%"></div>
+        <div class="skel" style="height:24px;width:75%;margin-top:.625rem"></div>
+        <div class="skel" style="height:16px;width:90%;margin-top:.625rem"></div>
+        <div class="skel" style="height:44px;width:96px;margin-top:1rem"></div>
+      </article>
+      <p class="help">Blocks at the exact heights of the real content. No shimmer.</p></div>
+
+    <div class="cell" style="background:var(--color-canvas)"><span class="label">Card — RSVP'd</span>
+      <article class="card">
+        <p class="badge badge-neutral" style="margin:0 0 .625rem">Thu 21 Aug · 20:00 ET</p>
+        <h4 style="margin:0;font-size:var(--text-lg);font-weight:600">Thursday game night</h4>
+        <div class="row" style="margin-top:1rem">
+          <span class="badge badge-online"><span aria-hidden="true">✓</span>You're in</span>
+          <button class="btn btn-quiet">Can't make it</button>
+        </div>
+      </article></div>
+  </div>
+
+  <!-- ================================================================= -->
+  <h2 class="u-display">Empty states</h2>
+  <p class="note">The most important components on this site. A new community site is mostly
+    empty, and empty has to read as <em>early</em>, not <em>abandoned</em>. The hatch ground is
+    lifted from the diagonal ruling in our own splash art — it says <em>reserved</em>. Budget:
+    one hatched area per screen. Never an illustration, never a sad robot.</p>
+
+  <div class="stack">
+    <div class="empty u-hatch">
+      <h4>Nothing on the calendar yet.</h4>
+      <p>Game nights get posted here first. Join the Discord and you'll see them before they
+        land on this page.</p>
+      <div class="act"><button class="btn btn-primary">Join the Discord</button></div>
+    </div>
+
+    <div class="empty u-hatch">
+      <h4>Nothing scheduled right now.</h4>
+      <p>The last one was three weeks ago. They usually go up about a week ahead.</p>
+      <div class="act"><button class="btn btn-secondary">See past events</button></div>
+    </div>
+
+    <div class="empty u-hatch">
+      <h4>You haven't RSVP'd to anything yet.</h4>
+      <p>When you do, it shows up here.</p>
+      <div class="act"><button class="btn btn-secondary">Browse events</button></div>
+    </div>
+  </div>
+  <p class="dont">Never the word "empty", "nothing found" or "no results" on its own. Say what
+    happens next. Always exactly one action — an empty state with no way out is a dead end.</p>
+
+  <!-- ================================================================= -->
+  <h2 class="u-display">Error states</h2>
+  <div class="stack">
+    <div class="notice" role="status">
+      <span style="color:var(--color-alert)" aria-hidden="true">▲</span>
+      <div><strong>Couldn't load the events.</strong>
+        <span>Refresh in a moment and it should be back.</span></div>
+    </div>
+    <div class="notice" role="status">
+      <span style="color:var(--color-alert)" aria-hidden="true">▲</span>
+      <div><strong>You'll need to be in the TWO Discord first.</strong>
+        <span>Join the server, then come back and log in.</span></div>
+    </div>
+  </div>
+  <p class="note"><code>role="status"</code>, not <code>role="alert"</code> — this did not
+    interrupt anything the person was doing. Every message names the next action;
+    "something went wrong" with no action is a shrug, not an error state.</p>
+
+  <!-- ================================================================= -->
+  <h2 class="u-display">The hero band</h2>
+  <p class="note">The violet is a <em>flat band</em>. There is no gradient anywhere on this
+    site — see <code>docs/BRAND.md</code> for the argument, since our own logo is one.</p>
+  <div class="band">
+    <p class="u-display" style="font-size:var(--text-6xl);line-height:var(--text-6xl--line-height);letter-spacing:var(--text-6xl--letter-spacing);margin:0">Since 1998</p>
+    <p style="font-size:var(--text-lg);max-width:46ch;margin:.75rem 0 0">Together We Own is a
+      gaming clan that spent most of its life private. We opened the doors.</p>
+    <p class="help" style="max-width:46ch">18+, mostly North America, mostly evenings. Small
+      enough that people know your name by the second time you show up.</p>
+    <div style="margin-top:1.5rem"><button class="btn btn-primary">Join the Discord</button></div>
+    <p class="help" style="margin-top:.75rem">84 members ·
+      <span style="color:var(--color-online)">26 online</span></p>
+  </div>
+
+  <hr class="rule" style="margin-top:4rem">
+  <p class="note" style="margin-top:1.5rem">Verify before opening a PR:
+    <code>node tools/check-contrast.mjs</code> must print 43/43.</p>
+
+</div>
+</body>
+</html>
