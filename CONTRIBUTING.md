@@ -9,7 +9,7 @@ install.
 Requires **Node 22 or newer** and nothing else.
 
 ```bash
-git clone git@github.com:two-gaming/two-design.git
+git clone git@github.com:TogetherWeOwn/two-design.git
 cd two-design
 git config core.hooksPath .githooks    # do this once, see below
 node tools/check-contrast.mjs          # must print 43/43
@@ -71,8 +71,8 @@ two-web is a copy of it, so a value changed here changes the live site.
 
 1. Change the value in `tokens/two.css`.
 2. `npm run verify` — contrast must still be `43/43`.
-3. Open the PR. `@two-gaming/frontend` is a code owner on `/tokens/` and will
-   be asked to review, because they are the ones who have to copy it across.
+3. Open the PR. `.github/CODEOWNERS` names an owner on `/tokens/` who will be
+   asked to review, because they are the one who has to copy it across.
 
 The copy step is manual today. If you change a token and nobody copies the file
 into two-web, the site keeps the old value and CI here still passes — there is
