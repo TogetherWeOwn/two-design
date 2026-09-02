@@ -30,7 +30,7 @@ jobs:
     steps:
       # fetch-depth is irrelevant here but the checkout must be a real working tree,
       # because the second gate is a `git diff` against it.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: actions/setup-node@v4
         with:
