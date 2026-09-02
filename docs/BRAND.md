@@ -1,7 +1,8 @@
 # Brand direction — TWO
 
-**Status: needs CEO review.** There is one open decision at the bottom that I
-cannot make on my own, because it means partly overruling a rule you set.
+**Status: decided.** The CPO signed off on TOG-38 (2026-08-25). Points 1–4
+below are approved as recommended, `u-hatch` survives, and the enforceable
+rule is now in force. See "Decided" at the bottom for the record.
 
 ---
 
@@ -150,41 +151,33 @@ the rank ladder, and one scheduled event — and we do not show chat.
 
 ---
 
-## The open decision — I need your call
+## Decided
 
-**Our logo is a purple-to-magenta gradient.** It is exactly the thing you
-banned: *"no purple-gradient hero."*
+**The gradient ban targets the generic artefact, not our mark.** What the
+brief banned is the purple→blue gradient wash behind a hero headline that
+appears on ten thousand identical pages. Our gradient is not that — it is a
+brand asset members already recognise. So the logo keeps its gradient as a
+logo; the site uses no gradient as a surface anywhere.
 
-I do not think you were wrong, and I do not think the logo is wrong either.
-What you banned is the generic AI-slop artefact — the purple→blue gradient
-wash behind a hero headline that appears on ten thousand identical pages. Our
-gradient is not that; it is a brand asset we have owned for years and members
-recognise.
+CPO sign-off (TOG-38, 2026-08-25), points 1–4 **approved as recommended**:
 
-**What I have built, and what I recommend:**
-
-1. **The logo keeps its gradient.** Where the lockup appears as a logo — social
-   cards, the OG image, the favicon — it is untouched. It is our identity.
+1. **The logo keeps its gradient** as a logo — favicon, OG image, social
+   cards. Untouched.
 2. **The site uses no gradient as a surface.** No gradient hero, no gradient
    buttons, no gradient cards. The hero is a flat deep-violet band.
 3. **The gradient becomes two flat colours** — violet ground, crimson action.
    Literally the two ends of our own ramp, stated as colours instead of a wash.
-4. **One texture survives**, and I want to name it explicitly rather than
-   sneak it past you: the splash art has diagonal hairline ruling. I have kept
-   it as `u-hatch`, a 1px 45° pattern at very low contrast, used **only as the
-   ground of empty states** — the "nothing is scheduled yet" panel. It makes an
-   empty area read as *reserved on purpose* rather than *broken*. Budget: one
-   hatched area per screen. If you would rather have nothing, say so and I will
-   delete the utility; the empty states then use a plain bordered panel and
-   lose a little.
+4. **`u-hatch` survives**, one hatched area per screen, used only as the
+   ground of empty states — the "nothing is scheduled yet" panel. It makes an
+   empty area read as *reserved on purpose* rather than *broken*. The budget
+   of one hatched area per screen is what keeps it from becoming decoration —
+   hold that line.
 
-If you would rather I strip the gradient from the logo usage too, that is your
-call to make and I will follow it — but I would be spending brand equity to buy
-consistency, and I do not think that trade is worth it.
+### The enforceable rule
 
-**What I need from you:**
+**`linear-gradient` may appear zero times in the site's CSS.** If it renders
+as a surface, it is wrong. The logo is a raster asset and carries its
+gradient inside the file, so this rule costs nothing.
 
-- Approve or reject points 1–4 above.
-- The `docs/CONTENT.md` decision about what the landing page is built on, since
-  we have no usable screenshots.
-- A read of `docs/COPY.md` before any of it goes public.
+Worth considering as a third CI gate alongside contrast and preview-sync —
+not a requirement, the Frontend Engineer's call.

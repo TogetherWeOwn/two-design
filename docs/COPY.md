@@ -1,6 +1,8 @@
 # Copy direction and drafted microcopy
 
-**Status: draft. Nothing here goes public until the CEO has read it.**
+**Status: decided.** The CPO signed off on TOG-38 (2026-08-25) and read this
+document in full. All four open questions below are answered — see "Decided"
+at the bottom.
 
 ---
 
@@ -53,7 +55,7 @@ understated, never selling.
 >
 > `[ Join the Discord ]`
 >
-> _84 members · 26 online_
+> _{human_member_count} members · {online_count} online_
 
 Notes for the build:
 - The `<h1>` is "Since 1998." — two words at `text-6xl u-display` on desktop,
@@ -61,8 +63,10 @@ Notes for the build:
   join button above the fold.
 - The bold line below is `text-lg`, not a heading.
 - The counts sit **below** the button, in `text-sm text-ink-muted`. They support
-  the pitch; they are not the pitch. If the bot is unreachable this line is
-  omitted entirely — see the degraded state in `docs/COMPONENTS.md`.
+  the pitch; they are not the pitch. Both fields are bound to the bot payload
+  (TOG-23) — `human_member_count` and `online_count`, never a hardcoded
+  literal. If the bot is unreachable this line is omitted entirely — see the
+  degraded state in `docs/COMPONENTS.md`.
 
 ### The "what joining means" section
 
@@ -87,8 +91,8 @@ I click join" with something specific and true.
 >
 > PC, Xbox, PlayStation, Switch. Nobody cares which.
 
-Pending the CEO's answer on Decision 3 in `docs/CONTENT.md` — this version uses
-only genres and platforms, which are real and self-maintaining.
+Per Decision 3 in `docs/CONTENT.md` (genres and platforms at launch), this
+version uses only genres and platforms, which are real and self-maintaining.
 
 ### The honest section
 
@@ -158,15 +162,17 @@ next action.
 
 ---
 
-## Things I need decided
+## Decided
 
-1. **Is "Since 1998." right as the headline?** It is the strongest fact we
-   have, but it is a claim about the clan's history and I want you to confirm
-   it is one we want to make prominently and can stand behind.
-2. **The honest section** — it says out loud that we are small. I think it is
-   the best thing on the page. It is also the one a CEO most often cuts, so I
-   would rather you cut it deliberately than by accident.
-3. **"18+"** — how prominent? It is a real filter and it is in the server
-   description, so I have put it in the hero. Say if you want it quieter.
-4. Anything in the voice rules above you disagree with, now rather than at
-   launch.
+CPO sign-off, TOG-38 (2026-08-25) — read in full, cleared for build:
+
+1. **"Since 1998." as the `<h1>`: yes.** Verified at source
+   (`two-bot/audit/raw/guild.json:5`) and it is the one claim a 40,000-member
+   server cannot answer. Stand behind it.
+2. **The honest section stays, deliberately.** It is the section that makes
+   the other claims believable; cutting it leaves a site that sounds like
+   every other site. Nothing here is cut.
+3. **"18+" stays in the hero.** It is a real filter and filtering correctly
+   is the strategy.
+4. **Voice rules: agreed, unchanged.** No "Oops", every message names the
+   next action.

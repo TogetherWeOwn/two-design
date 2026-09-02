@@ -190,8 +190,8 @@ Renders the member count from the bot's cache. It has more states than anything
 else on the site, because it is the one thing that can be wrong.
 
 ```html
-<p class="u-numeric text-6xl u-display text-ink">84</p>
-<p class="text-sm text-ink-muted">members · <span class="text-online">26 online</span></p>
+<p class="u-numeric text-6xl u-display text-ink">{human_member_count}</p>
+<p class="text-sm text-ink-muted">members · <span class="text-online">{online_count} online</span></p>
 ```
 
 | State | Treatment |
