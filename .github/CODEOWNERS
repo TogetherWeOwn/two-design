@@ -36,3 +36,6 @@
 /.github/CODEOWNERS         @Rick7C2
 /.githooks/                 @Rick7C2
 /.gitleaks.toml             @Rick7C2
+
+# TOG-245 CI red-control: this handle is not a collaborator. Temporary branch.
+/tools/probe/                @phanan
