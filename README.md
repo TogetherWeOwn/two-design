@@ -2,11 +2,37 @@
 
 The whole system in one page. If you only read one file, read this one.
 
+## Licences and reuse
+
+The [licence scope](LICENSE) separates the reusable system from its brand
+and third-party assets:
+
+| Material | Terms |
+|---|---|
+| First-party code, configuration and design tokens, including preview HTML/CSS and documentation code examples | [MIT](LICENSES/MIT.txt) |
+| First-party documentation prose in this README, `CONTRIBUTING.md` and `docs/` | [CC-BY-4.0](LICENSES/CC-BY-4.0.txt); attribute TogetherWeOwn contributors, link the source and licence, and indicate changes |
+| TWO / Together We Own names, logos and brand-mark artwork, including `assets/brand/two-icon-256.png` and `assets/brand/two-splash-1024.png` | [All rights reserved](assets/brand/NOTICE.md); excluded from both open licences, with no trademark permission granted |
+| Third-party Archivo fonts in `assets/fonts/` | [SIL OFL 1.1](assets/fonts/Archivo-OFL.txt), with their original copyright notice; not relicensed as first-party work |
+
+A mark remains reserved when displayed in the preview or documentation.
+Other third-party material retains its own notices and terms. See [LICENSE](LICENSE)
+for the exact boundary and attribution details; retain applicable notices
+when redistributing code, documentation or fonts.
+
+This licensing change does not make the repository public or publish a
+package. `package.json` retains `"private": true`; public GitHub access is
+not npm publication.
+
 ## Install
+
+These commands target TWO's own site. For another project, reuse the code and
+tokens under MIT, preserve the Archivo OFL notice, and substitute your own
+brand assets unless you have separate permission to use TWO's marks.
 
 ```bash
 cp tokens/two.css                 ../two-web/resources/css/two.css
 cp assets/fonts/*.woff2           ../two-web/public/fonts/
+cp assets/fonts/Archivo-OFL.txt   ../two-web/public/fonts/
 cp assets/brand/*                 ../two-web/public/brand/
 ```
 
