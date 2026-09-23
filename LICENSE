@@ -1,0 +1,66 @@
+# two-design — licence scope
+
+This repository contains separately licensed material. It is not all covered
+by a single licence. The grants below apply only to first-party material and
+only to rights the contributors have authority to license. Existing
+third-party copyright and licence notices remain in force.
+
+## First-party code and design tokens — MIT
+
+First-party code, configuration and design tokens are licensed under the MIT
+License in LICENSES/MIT.txt. This includes tokens/, tools/, ci/, .github/,
+.githooks/, package.json, preview/ HTML and CSS (including generated CSS), and
+code examples in the documentation.
+
+This grant does not include the reserved brand marks or third-party assets
+listed below, even when code or a preview references or displays them.
+
+## First-party documentation — CC-BY-4.0
+
+First-party documentation prose in README.md, CONTRIBUTING.md and docs/ is
+licensed under the Creative Commons Attribution 4.0 International Public
+License (CC-BY-4.0), reproduced in LICENSES/CC-BY-4.0.txt:
+https://creativecommons.org/licenses/by/4.0/
+
+Attribute the documentation to the TogetherWeOwn contributors, retain supplied
+notices, link to the source (https://github.com/TogetherWeOwn/two-design) and
+licence, and indicate changes as required by that licence. This is a summary;
+the full licence text governs. Code examples are MIT as specified above.
+Brand marks and third-party material appearing in documentation are excluded
+from this documentation grant.
+
+## Brand marks — all rights reserved
+
+The TWO / Together We Own names, logos and brand-mark artwork are reserved;
+no trademark licence or permission to reuse that artwork is granted by the
+MIT or CC-BY-4.0 licences. This includes:
+
+- assets/brand/two-icon-256.png
+- assets/brand/two-splash-1024.png
+
+See assets/brand/NOTICE.md. Displaying a mark in documentation or a preview,
+or supplying installation instructions, does not put it under either open
+licence. Statutory exceptions and any separately granted permissions are
+unaffected. The reusable code and tokens do not require permission to use
+under their MIT licence; the reservation applies to the marks, not the
+colour values, spacing or other design tokens.
+
+## Third-party material — original licences retained
+
+The Archivo fonts are third-party material, not claimed as TogetherWeOwn's
+work. assets/fonts/archivo-latin.woff2 and
+assets/fonts/archivo-latin-ext.woff2 remain licensed under the SIL Open Font
+License 1.1. The original copyright notice and full licence are preserved in
+assets/fonts/Archivo-OFL.txt and must accompany redistributed font copies in
+accordance with that licence. Neither MIT nor CC-BY-4.0 replaces the OFL.
+
+Other third-party material, if added, retains its own notices and terms; none
+of the first-party grants above purports to relicense it. Licence texts are
+reproduced notices, not claimed as first-party documentation.
+
+## Publication is separate
+
+These licence boundaries do not change repository visibility or publish a
+package. package.json remains private: true. Making a GitHub repository
+public would not publish an npm package or grant rights to its reserved brand
+marks; package publication is a separate operation.
