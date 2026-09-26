@@ -24,7 +24,7 @@ permissions:
 jobs:
   tests:
     name: tests
-    runs-on: [self-hosted, two-selfhosted]
+    runs-on: ubuntu-24.04
     timeout-minutes: 5
 
     steps:
