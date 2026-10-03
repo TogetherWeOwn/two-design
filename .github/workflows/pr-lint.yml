@@ -15,8 +15,8 @@ name: PR lint
 # event is handled by an explicit allowlist below; nothing falls through to the push path.
 
 on:
-  pull_request:
-    types: [opened, edited, synchronize, reopened, ready_for_review]
+  # Legacy PR development checks are frozen (TOG-12060): no automatic pull_request run. A PR's
+  # title/body is linted by dispatching this workflow with its number (see the note above).
   workflow_dispatch:
     inputs:
       pr_number:
