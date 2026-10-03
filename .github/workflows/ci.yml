@@ -11,6 +11,9 @@ name: CI
 
 on:
   pull_request:
+  # Manual exact-head route (TOG-12922): dispatch this workflow on a PR's head branch and
+  # `tests` runs on that branch's head commit, which is what the PR's required check reads.
+  workflow_dispatch:
   push:
     branches: [main]
 

@@ -8,10 +8,21 @@ name: PR lint
 #   * Repos are squash-merge only and the squash commit title is the PR title, so the history on
 #     main is one conventional commit per PR. The push job below flags any commit that bypasses it
 #     (for example a merge call that passes its own commit_title).
+#
+# Manual exact-head route (TOG-12922): `workflow_dispatch` with `pr_number`. A dispatch has no PR
+# payload, so the job binds itself to that PR through the API and fails closed unless the PR is
+# open, targets main, is a same-repo branch and its head is exactly the dispatched commit. Each
+# event is handled by an explicit allowlist below; nothing falls through to the push path.
 
 on:
   pull_request:
     types: [opened, edited, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Number of the open same-repo PR to lint. Dispatch on that PR's head branch.
+        required: true
+        type: string
   push:
     branches: [main]
 
@@ -38,9 +49,17 @@ jobs:
           BODY: ${{ github.event.pull_request.body }}
           AUTHOR: ${{ github.event.pull_request.user.login }}
           COMMITS: ${{ toJSON(github.event.commits) }}
+          # Only the workflow_dispatch path reads these. The token is the run's own, read-only.
+          PR_NUMBER: ${{ inputs.pr_number }}
+          GH_TOKEN: ${{ github.token }}
+          API_URL: ${{ github.api_url }}
+          REPO: ${{ github.repository }}
+          REF: ${{ github.ref }}
+          REF_NAME: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
         shell: python3 {0}
         run: |
-          import json, os, re, sys
+          import hashlib, json, os, re, sys, urllib.request
 
           TYPES = "feat|fix|perf|refactor|test|docs|build|ci|chore|revert|style|security"
           HEADER = re.compile(rf"^({TYPES})(\([A-Za-z0-9._/,-]+\))?!?: \S.*$")
@@ -58,16 +77,71 @@ jobs:
                   errs.append("ends with a period")
               return errs
 
-          failed = False
-          if os.environ["EVENT"] == "pull_request":
-              title = os.environ.get("TITLE", "").strip()
-              body = os.environ.get("BODY", "") or ""
-              author = os.environ.get("AUTHOR", "")
+          def refuse(why):
+              print(f"::error title=Dispatch binding::{why}")
+              sys.exit(1)
+
+          class NoRedirect(urllib.request.HTTPRedirectHandler):
+              # A redirect would carry the token to wherever it points; fail instead.
+              def redirect_request(self, *args, **kwargs):
+                  return None
+
+          def load_dispatched_pr():
+              """Bind a workflow_dispatch run to the PR named by pr_number, or exit 1."""
+              number = os.environ.get("PR_NUMBER", "")
+              if not re.fullmatch(r"[0-9]{1,7}", number):
+                  refuse("pr_number must be 1-7 digits")
+              request = urllib.request.Request(
+                  f"{os.environ['API_URL']}/repos/{os.environ['REPO']}/pulls/{number}",
+                  headers={"Authorization": "Bearer " + os.environ["GH_TOKEN"],
+                           "Accept": "application/vnd.github+json",
+                           "X-GitHub-Api-Version": "2022-11-28"})
+              try:
+                  with urllib.request.build_opener(NoRedirect).open(request, timeout=30) as resp:
+                      pr = json.load(resp)
+              except (OSError, ValueError) as exc:  # HTTPError/URLError are OSError
+                  refuse(f"could not read PR #{number}: {type(exc).__name__}: {str(exc)[:200]}")
+
+              def field(*path):
+                  node = pr
+                  for key in path:
+                      if not isinstance(node, dict) or node.get(key) is None:
+                          refuse(f"PR #{number} response has no {'.'.join(path)}")
+                      node = node[key]
+                  return node
+
+              if field("number") != int(number):
+                  refuse(f"API answered for PR {field('number')}, not #{number}")
+              if field("state") != "open":
+                  refuse(f"PR #{number} is {field('state')}, not open")
+              if field("base", "ref") != "main":
+                  refuse(f"PR #{number} targets {field('base', 'ref')}, not main")
+              if field("head", "repo", "full_name") != os.environ["REPO"]:
+                  refuse(f"PR #{number} head is {field('head', 'repo', 'full_name')}, "
+                         "not a branch of this repository (fork PRs are refused)")
+              if not os.environ["REF"].startswith("refs/heads/") \
+                      or field("head", "ref") != os.environ["REF_NAME"]:
+                  refuse(f"dispatch ref {os.environ['REF']} is not PR #{number}'s head branch "
+                         f"{field('head', 'ref')}")
+              if field("head", "sha") != os.environ["SHA"]:
+                  refuse(f"PR #{number} head is {field('head', 'sha')}, but this run is "
+                         f"{os.environ['SHA']}. Re-dispatch on the current head.")
+              title, author = field("title"), field("user", "login")
+              if not isinstance(title, str) or not isinstance(author, str):
+                  refuse(f"PR #{number} title or author is not text")
+              body = pr.get("body")
+              if body is not None and not isinstance(body, str):
+                  refuse(f"PR #{number} body is not text")
+              return number, title.strip(), body or "", author
+
+          def lint_pr(title, body, author):
+              """Title/body lint. Returns True when it failed."""
               if author.endswith("[bot]") and author.startswith(("dependabot", "renovate")):
                   if header_errors(title):
                       print(f"::warning::{author} title '{title}' is not conventional; set "
                             "commit-message.prefix (e.g. chore(deps)) in the bot config.")
-                  sys.exit(0)
+                  return False
+              failed = False
               errs = header_errors(title)
               if errs:
                   failed = True
@@ -81,7 +155,10 @@ jobs:
                   level = "error" if os.environ["REQUIRE_CARD_REF"] == "true" else "warning"
                   failed = failed or level == "error"
                   print(f"::{level} title=Card reference::Add 'Refs: TOG-1234' to the PR body.")
-          else:
+              return failed
+
+          def lint_commits():
+              failed = False
               for c in json.loads(os.environ.get("COMMITS") or "[]") or []:
                   subject = (c.get("message") or "").splitlines()[0] if c.get("message") else ""
                   if subject.startswith(("Merge ", "Revert \"")):
@@ -92,6 +169,29 @@ jobs:
                       print(f"::error title=Commit on main::{c.get('id','')[:10]} '{subject}': "
                             f"{'; '.join(errs)}. Merge PRs with squash and the PR title as the "
                             "commit title.")
+              return failed
+
+          event = os.environ["EVENT"]
+          if event == "pull_request":
+              failed = lint_pr(os.environ.get("TITLE", "").strip(),
+                               os.environ.get("BODY", "") or "", os.environ.get("AUTHOR", ""))
+          elif event == "workflow_dispatch":
+              number, title, body, author = load_dispatched_pr()
+              failed = lint_pr(title, body, author)
+              # Editing the title/body does not change the head SHA and does not re-run a dispatch,
+              # so record exactly what was linted for the merger to compare at merge time.
+              digest = hashlib.sha256(f"{title}\n{body}".encode()).hexdigest()
+              note = (f"Linted PR #{number} at {os.environ['SHA']}: title {json.dumps(title)}, "
+                      f"sha256(title + LF + body) = {digest}")
+              print(note)
+              if os.environ.get("GITHUB_STEP_SUMMARY"):
+                  with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as summary:
+                      summary.write(note + "\n")
+          elif event == "push":
+              failed = lint_commits()
+          else:
+              print(f"::error::pr-lint does not handle the '{event}' event; refusing to pass.")
+              sys.exit(1)
           if failed:
               sys.exit(1)
           print("PR conventions OK")
