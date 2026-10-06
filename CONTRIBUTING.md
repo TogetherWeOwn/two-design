@@ -46,6 +46,14 @@ decision that gets said out loud in the PR.
 
 Whole run is about 30 seconds.
 
+CI only runs what a change affects. A pull request that touches nothing but
+markdown, `docs/` or `LICENSE*` skips the two gates; anything else, including
+`package.json`, `tokens/`, `tools/`, `preview/`, `assets/` and `.github/`, runs
+them. Pushes to `main` and a nightly schedule always run everything. The check
+to require is `ci-ok`: it is green when the gates passed or were skipped on
+purpose, and red when change detection itself failed. `pr-lint` and `gitleaks`
+run on every pull request, drafts and docs-only changes included.
+
 ## Branches
 
 Nothing lands on `main` except through a pull request.

@@ -15,16 +15,14 @@ name: PR lint
 # event is handled by an explicit allowlist below; nothing falls through to the push path.
 
 on:
-  # Linting a pull request is opt-in (TOG-12060, TOG-12942): opening, pushing to, editing or
-  # reopening a PR does not run it. A maintainer adds any label to the PR's exact head to produce
-  # `pr-lint` as a `pull_request` check run, which is what the PR's required check reads. A new
-  # push or an edited title/body needs the label removed and added again. There is deliberately no
-  # job-level `if` and no path filter: a skipped required job reports success, so every `labeled`
-  # event must run the real job.
+  # Every PR event that can change the title, the body or the head lints it: opening, editing,
+  # pushing, reopening and leaving draft. Drafts and docs-only PRs lint too. There is deliberately
+  # no job-level `if` and no path filter: a skipped required job reports success, so the real job
+  # must run on every event.
   pull_request:
-    types: [labeled]
-  # Manual route (TOG-12922): dispatch with the PR number (see the note above). Those runs are
-  # not in a PR's status rollup, so they do not satisfy the required check; use the label.
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+  # Manual route: dispatch with the PR number (see the note above). Those runs are not in a PR's
+  # status rollup, so they do not satisfy the required check; the PR events above do.
   workflow_dispatch:
     inputs:
       pr_number:
