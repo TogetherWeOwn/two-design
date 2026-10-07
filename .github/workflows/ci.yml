@@ -28,6 +28,8 @@ name: CI
 
 on:
   pull_request:
+    # Retargeting changes the merge base without changing the head; recompute the gates.
+    types: [opened, edited, synchronize, reopened, ready_for_review]
   # Manual route: dispatch on a branch to run the full gates on its head commit. Those runs are
   # not in a PR's status rollup, so they do not satisfy a PR's required check.
   workflow_dispatch:
@@ -101,6 +103,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+
+      - name: CI retargeting regression
+        run: node --test tools/ci-retarget.test.mjs
 
       # There are no dependencies, and that is a feature worth defending. If a
       # package.json ever grows one, this step starts failing and someone has to
