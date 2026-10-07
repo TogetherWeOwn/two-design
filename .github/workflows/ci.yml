@@ -7,32 +7,91 @@
 # The job id is `tests` on purpose. Branch protection matches a required check
 # against the *job id*, not the workflow name, and `tests` is the name the org's
 # setup script requires across our repos (TWO-39). One id, every repo, no surprises.
+#
+# CI standard: run only what the change affects, plus a full run on main and nightly.
+#
+#   changes   native `git diff --name-only` against the merge base; no third-party action.
+#   tests     the two gates below. Gated at job level on `changes.outputs.code`.
+#   ci-ok     the one aggregator branch protection should require, next to `pr-lint` and
+#             `gitleaks`. A skipped job counts as success here, so a docs-only PR never blocks
+#             on a skipped check, and it fails closed when change detection did not succeed.
+#
+# This repo has a single code area, so the only skip is docs-only. A PR is docs-only when every
+# changed file is markdown, under docs/, or a LICENSE file, and nothing under .github/ changed.
+# Everything else runs the gates: package.json (dependencies), tokens/, tools/, preview/,
+# assets/ and .github/** (this filter included). Pushes to main, the nightly schedule and manual
+# dispatch always run everything.
+#
+# Never add `paths:` or `paths-ignore:` to the triggers below. A workflow that is skipped at the
+# trigger level never reports `ci-ok`, and a required check that never reports blocks the merge.
 name: CI
 
 on:
-  # CI on a pull request is opt-in (TOG-12060, TOG-12942): opening, pushing to, editing or
-  # reopening a PR does not run it. A maintainer adds any label to the PR's exact head to produce
-  # `tests` as a `pull_request` check run, which is what the PR's required check reads. A new push
-  # needs the label removed and added again. There is deliberately no job-level `if` and no path
-  # filter: a skipped required job reports success, so every `labeled` event must run the real job.
   pull_request:
-    types: [labeled]
-  # Manual route (TOG-12922): dispatch on a branch to run `tests` on its head commit. Those runs
-  # are not in a PR's status rollup, so they do not satisfy the required check; use the label.
+    # Retargeting changes the merge base without changing the head; recompute the gates.
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+  # Manual route: dispatch on a branch to run the full gates on its head commit. Those runs are
+  # not in a PR's status rollup, so they do not satisfy a PR's required check.
   workflow_dispatch:
   push:
     branches: [main]
+  schedule:
+    - cron: '41 4 * * *'
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
 
 jobs:
+  changes:
+    name: Change detection
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      code: ${{ steps.detect.outputs.code }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - id: detect
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT" != "pull_request" ]; then
+            echo "code=true" >> "$GITHUB_OUTPUT"
+            echo "non-PR event ($EVENT): full run"
+            exit 0
+          fi
+          merge_base="$(git merge-base "$BASE_SHA" "$HEAD_SHA")"
+          files="$(git -c core.quotePath=false diff --name-only --no-renames "$merge_base" "$HEAD_SHA")"
+          echo "changed files:"
+          echo "$files"
+          code=false
+          if [ -z "$files" ]; then
+            code=true
+          else
+            while IFS= read -r f; do
+              case "$f" in
+                .github/*) code=true ;;
+                *.md | docs/* | LICENSE | LICENSES/*) ;;
+                *) code=true ;;
+              esac
+            done <<< "$files"
+          fi
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          echo "code=$code"
+
   tests:
     name: tests
+    needs: [changes]
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
 
@@ -44,6 +103,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+
+      - name: CI retargeting regression
+        run: node --test tools/ci-retarget.test.mjs
 
       # There are no dependencies, and that is a feature worth defending. If a
       # package.json ever grows one, this step starts failing and someone has to
@@ -130,3 +192,45 @@ jobs:
           path: contrast.txt
           retention-days: 14
           if-no-files-found: ignore
+
+  ci-ok:
+    name: ci-ok
+    needs: [changes, tests]
+    if: always()
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Aggregate gated results
+        env:
+          CHANGES_RESULT: ${{ needs.changes.result }}
+          CODE: ${{ needs.changes.outputs.code }}
+          TESTS_RESULT: ${{ needs.tests.result }}
+        run: |
+          set -euo pipefail
+          echo "changes=$CHANGES_RESULT code=$CODE tests=$TESTS_RESULT"
+          # Change detection must really have run: if it failed or was skipped, the gated job is
+          # skipped too and the aggregate would pass without testing anything.
+          if [ "$CHANGES_RESULT" != "success" ]; then
+            echo "::error::change detection ended '$CHANGES_RESULT'"
+            exit 1
+          fi
+          case "$CODE" in
+            true)
+              if [ "$TESTS_RESULT" != "success" ]; then
+                echo "::error::code changed and tests ended '$TESTS_RESULT'"
+                exit 1
+              fi
+              ;;
+            false)
+              # Docs-only: tests are skipped on purpose; a run that happened must still be green.
+              if [ "$TESTS_RESULT" != "skipped" ] && [ "$TESTS_RESULT" != "success" ]; then
+                echo "::error::tests ended '$TESTS_RESULT'"
+                exit 1
+              fi
+              ;;
+            *)
+              echo "::error::change detection produced no verdict ('$CODE')"
+              exit 1
+              ;;
+          esac
+          echo "ci-ok: every needed job succeeded or was skipped on purpose"

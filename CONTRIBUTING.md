@@ -29,6 +29,7 @@ forgot.
 | `npm run check` | WCAG 2.2 AA contrast over every pairing. Must print `43/43`. |
 | `npm run preview` | Rebuilds `preview/tokens.generated.css` from `tokens/two.css`. |
 | `npm run verify` | Both of the above. Run it before you open a PR. |
+| `node --test tools/ci-retarget.test.mjs` | Verify PR base-edit triggers and rerun detection against a retargeted merge base. |
 
 ## The two gates
 
@@ -45,6 +46,14 @@ Raising the floor when the system genuinely grows is expected. Lowering it is a
 decision that gets said out loud in the PR.
 
 Whole run is about 30 seconds.
+
+CI only runs what a change affects. A pull request that touches nothing but
+markdown, `docs/`, `LICENSE` or `LICENSES/` skips the two gates; anything else, including
+`package.json`, `tokens/`, `tools/`, `preview/`, `assets/` and `.github/`, runs
+them. Pushes to `main` and a nightly schedule always run everything. The check
+to require is `ci-ok`: it is green when the gates passed or were skipped on
+purpose, and red when change detection itself failed. `pr-lint` and `gitleaks`
+run on every pull request, drafts and docs-only changes included.
 
 ## Branches
 
