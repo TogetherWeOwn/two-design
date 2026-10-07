@@ -89,7 +89,7 @@ jobs:
   tests:
     name: tests
     needs: [changes]
-    if: needs.changes.outputs.code == 'true'
+    if: ${{ !cancelled() && needs.changes.outputs.code != 'false' }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
 
@@ -166,7 +166,7 @@ jobs:
         run: |
           node tools/build-preview.mjs
           if ! git diff --exit-code -- preview/; then
-            echo "::error::preview/ is out of date. A token changed and the preview was not regenerated. Run \`npm run preview\` and commit the result."
+            echo "::error::preview/ is out of date. A token changed and the preview was not regenerated. Run `npm run preview` and commit the result."
             exit 1
           fi
 
