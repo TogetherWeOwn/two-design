@@ -166,7 +166,7 @@ jobs:
         run: |
           node tools/build-preview.mjs
           if ! git diff --exit-code -- preview/; then
-            echo "::error::preview/ is out of date. A token changed and the preview was not regenerated. Run `npm run preview` and commit the result."
+            echo "::error::preview/ is out of date. A token changed and the preview was not regenerated. Run \`npm run preview\` and commit the result."
             exit 1
           fi
 
