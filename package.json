@@ -2,7 +2,7 @@
   "name": "two-design",
   "private": true,
   "type": "module",
-  "description": "Design tokens and brand direction for the TWO website. Zero dependencies on purpose.",
+  "description": "Design tokens and brand direction for the TWO website. Zero dependencies on purpose. CI acceptance metadata probe.",
   "scripts": {
     "check": "node tools/check-contrast.mjs",
     "preview": "node tools/build-preview.mjs",
