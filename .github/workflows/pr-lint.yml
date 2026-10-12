@@ -13,6 +13,11 @@ name: PR lint
 # payload, so the job binds itself to that PR through the API and fails closed unless the PR is
 # open, targets main, is a same-repo branch and its head is exactly the dispatched commit. Each
 # event is handled by an explicit allowlist below; nothing falls through to the push path.
+# Forward control for public text: the strict subset (tracker ids scoped to TOG below,
+# instance UI links like /TOG/issues/, and the internal host) always fails the PR
+# title/body check. STRICT_INTERNAL_LEVEL fail-closed: any value other than an explicit
+# "warning" (or "warn") downgrade fails. Advisory behavior is unchanged
+# and is skipped for a field the strict subset already flagged.
 
 on:
   # Every PR event that can change the title, the body or the head lints it: opening, editing,
@@ -41,6 +46,7 @@ concurrency:
 
 env:
   REQUIRE_CARD_REF: "false"
+  STRICT_INTERNAL_LEVEL: "error" # fail-closed strict public-text gate; "warning" downgrades it
 
 jobs:
   pr-lint:
@@ -72,6 +78,13 @@ jobs:
           HELP = ("Expected a Conventional Commits header, e.g. 'fix(auth): refuse expired sudo "
                   "sessions' or 'feat(events): shareable event page'. Allowed types: "
                   + TYPES.replace("|", ", ") + ". Put the card ID in the body as 'Refs: TOG-1234'.")
+          # Strict public-text subset: tracker ids (this file's prefix-scoped pattern),
+          # instance UI links and the internal host. These always fail a public title/body
+          # check unless the strict level is explicitly downgraded to a warning (fail-closed).
+          TRACKER_ID = re.compile(r"\bTOG-\d+\b")
+          UI_LINK = re.compile(r"/[A-Z]{2,6}/(issues|agents|projects|approvals|runs)/")
+          HOST_INTERNAL = re.compile(r"\binfextion\.net\b", re.IGNORECASE)
+          STRICT_FIXED = [(UI_LINK, "an instance UI link"), (HOST_INTERNAL, "the internal host")]
 
           def header_errors(text):
               errs = []
@@ -140,6 +153,25 @@ jobs:
                   refuse(f"PR #{number} body is not text")
               return number, title.strip(), body or "", author
 
+          def strict_internal_hits(text):
+              """Fail-closed strict subset for public title/body. Labels only, never values."""
+              hits = []
+              if TRACKER_ID.search(text or ""):
+                  hits.append("a tracker id")
+              for pat, label in STRICT_FIXED:
+                  if pat.search(text or ""):
+                      hits.append(label)
+              return hits
+
+          def report_strict(hits, where):
+              raw = (os.environ.get("STRICT_INTERNAL_LEVEL") or "").strip().lower()
+              level = "warning" if raw in ("warning", "warn") else "error"
+              print(f"::{level} title=Strict internal ref in {where}::The PR {where} holds " +
+                    f"{', '.join(hits)}. Public PR text carries no tracker ids, instance " +
+                    "links or internal hosts: say it in plain words and link only public " +
+                    "GitHub issues.")
+              return level == "error"
+
           def lint_pr(title, body, author):
               """Title/body lint. Returns True when it failed."""
               if author.endswith("[bot]") and author.startswith(("dependabot", "renovate")):
@@ -157,10 +189,11 @@ jobs:
                   failed = True
                   print("::error title=PR body::The description is empty. Say what changed, why, "
                         "and how it was tested (see the PR template).")
-              if not re.search(r"\bTOG-\d+\b", body):
-                  level = "error" if os.environ["REQUIRE_CARD_REF"] == "true" else "warning"
-                  failed = failed or level == "error"
-                  print(f"::{level} title=Card reference::Add 'Refs: TOG-1234' to the PR body.")
+              for where, text in (("the title", title), ("the body", body)):
+                  hits = strict_internal_hits(text)
+                  if hits:
+                      if report_strict(hits, where):
+                          failed = True
               return failed
 
           def lint_commits():
