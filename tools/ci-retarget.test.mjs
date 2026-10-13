@@ -55,6 +55,67 @@ test('CI, secret scan and PR lint rerun on base edits, including drafts', () => 
   }
 });
 
+test('strict public-text gate fails closed (pr-lint.yml)', () => {
+  const prLint = readFileSync(new URL('../.github/workflows/pr-lint.yml', import.meta.url), 'utf8');
+  // The strict gate lives inline in the workflow; test that exact block, not a copy.
+  const marker = 'shell: python3 {0}';
+  const start = prLint.indexOf(marker);
+  assert.notEqual(start, -1, 'missing python gate step');
+  const block = prLint.slice(start).match(/^        run: \|\n((?:          .*\n|\n)+)/m);
+  assert.ok(block, 'missing inline python gate run block');
+  const code = block[1].replace(/^          /gm, '');
+  assert.match(code, /STRICT_INTERNAL_LEVEL/, 'gate must read STRICT_INTERNAL_LEVEL');
+  assert.match(code, /TRACKER_ID/, 'gate must check tracker ids');
+  // Pin the shipped level: the workflow's top-level env is what production runs,
+  // so a downgrade there must turn this test red (fail-closed).
+  const shipped = prLint.match(/^env:\n(?:  .*\n)*?  STRICT_INTERNAL_LEVEL: "([^"]+)"/m);
+  assert.ok(shipped, 'workflow must declare STRICT_INTERNAL_LEVEL in top-level env');
+  assert.equal(shipped[1], 'error', 'shipped STRICT_INTERNAL_LEVEL must be error (fail-closed)');
+
+  const dir = mkdtempSync(join(tmpdir(), 'pr-lint-strict-'));
+  try {
+    const gate = join(dir, 'gate.py');
+    writeFileSync(gate, code);
+    const runGate = ({ title, body, level = shipped[1] }) => run('python3', [gate], dir, {
+      EVENT: 'pull_request',
+      TITLE: title,
+      BODY: body,
+      AUTHOR: 'fixture-user',
+      COMMITS: '[]',
+      STRICT_INTERNAL_LEVEL: level,
+    });
+
+    const cleanTitle = 'fix(ci): fail strict internal refs in title and body';
+    const cleanBody = 'This change updates the lint wording and adds a committed regression test for the gate.';
+    const clean = runGate({ title: cleanTitle, body: cleanBody });
+    assert.equal(clean.status, 0, clean.stdout + clean.stderr);
+
+    // The unfilled template ("Refs: TOG-" with no digits) must still pass.
+    const unfilled = runGate({ title: cleanTitle, body: `${cleanBody}\n\nRefs: TOG-` });
+    assert.equal(unfilled.status, 0, unfilled.stdout + unfilled.stderr);
+
+    const cases = [
+      { name: 'tracker id in title', title: 'fix(ci): address TOG-1234 fallout', body: cleanBody },
+      { name: 'tracker id in body', title: cleanTitle, body: `${cleanBody}\n\nRefs: TOG-1234` },
+      { name: 'instance UI link', title: cleanTitle, body: `${cleanBody} See /TOG/issues/123 for context.` },
+      { name: 'internal host in mixed case', title: cleanTitle, body: `${cleanBody} Hosted on InFeXtIoN.nEt internally.` },
+    ];
+    for (const { name, title, body } of cases) {
+      const result = runGate({ title, body });
+      assert.equal(result.status, 1, `${name} must fail: ${result.stdout}${result.stderr}`);
+      assert.match(result.stdout + result.stderr, /Strict internal ref/, `${name} must report the strict gate`);
+    }
+
+    const downgraded = runGate({ title: cleanTitle, body: `${cleanBody}\n\nRefs: TOG-1234`, level: 'warning' });
+    assert.equal(downgraded.status, 0, downgraded.stdout + downgraded.stderr);
+
+    const garbage = runGate({ title: cleanTitle, body: `${cleanBody}\n\nRefs: TOG-1234`, level: 'off' });
+    assert.equal(garbage.status, 1, `garbage level must fail closed: ${garbage.stdout}${garbage.stderr}`);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
 test('the same docs-only head runs the gates after retargeting to main', () => {
   const scratch = process.env.TMPDIR || tmpdir();
   const cwd = mkdtempSync(join(scratch, 'ci-retarget-'));
