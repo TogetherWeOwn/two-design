@@ -66,12 +66,17 @@ test('strict public-text gate fails closed (pr-lint.yml)', () => {
   const code = block[1].replace(/^          /gm, '');
   assert.match(code, /STRICT_INTERNAL_LEVEL/, 'gate must read STRICT_INTERNAL_LEVEL');
   assert.match(code, /TRACKER_ID/, 'gate must check tracker ids');
+  // Pin the shipped level: the workflow's top-level env is what production runs,
+  // so a downgrade there must turn this test red (fail-closed).
+  const shipped = prLint.match(/^env:\n(?:  .*\n)*?  STRICT_INTERNAL_LEVEL: "([^"]+)"/m);
+  assert.ok(shipped, 'workflow must declare STRICT_INTERNAL_LEVEL in top-level env');
+  assert.equal(shipped[1], 'error', 'shipped STRICT_INTERNAL_LEVEL must be error (fail-closed)');
 
   const dir = mkdtempSync(join(tmpdir(), 'pr-lint-strict-'));
   try {
     const gate = join(dir, 'gate.py');
     writeFileSync(gate, code);
-    const runGate = ({ title, body, level = 'error' }) => run('python3', [gate], dir, {
+    const runGate = ({ title, body, level = shipped[1] }) => run('python3', [gate], dir, {
       EVENT: 'pull_request',
       TITLE: title,
       BODY: body,
